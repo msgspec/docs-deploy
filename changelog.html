@@ -312,6 +312,10 @@
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Fix generic <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> subclasses dropping the base type argument, so
+<code class="docutils literal notranslate"><span class="pre">class</span> <span class="pre">Sub(Base[int])</span></code> now validates inherited fields as <code class="docutils literal notranslate"><span class="pre">int</span></code>. Postponed
+PEP 695 annotations on those subclasses resolve instead of raising
+<code class="docutils literal notranslate"><span class="pre">NameError</span></code> (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1191">Issue #1191</a>).</p></li>
 <li><p>Fix invalid <code class="docutils literal notranslate"><span class="pre">json</span></code> that was produced when converting non-finite <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>
 objects with <code class="docutils literal notranslate"><span class="pre">decimal_format=&quot;number&quot;</span></code> (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1262">Issue #1262</a>)</p></li>
 <li><p>Fix a crash <code class="docutils literal notranslate"><span class="pre">repr()</span></code> call for structs with <code class="docutils literal notranslate"><span class="pre">repr_omit_defaults=True</span></code>
