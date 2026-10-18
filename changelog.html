@@ -344,6 +344,9 @@ and <code class="docutils literal notranslate"><span class="pre">_field_defaults
 was used in loops (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1256">PR #1256</a>)</p></li>
 <li><p>Fix a possible crash when too big ints are passed
 into <code class="docutils literal notranslate"><span class="pre">Meta</span></code>’s constructor (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1260">PR #1260</a>)</p></li>
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">msgpack</span></code> encoding of dicts with <code class="docutils literal notranslate"><span class="pre">frozendict</span></code> keys on Python 3.15, which
+raised <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> although the decoder produces such keys for
+<code class="docutils literal notranslate"><span class="pre">dict[frozendict[K,</span> <span class="pre">V],</span> <span class="pre">T]</span></code> (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1280">Issue #1280</a>)</p></li>
 </ul>
 </section>
 <section id="version-0-22-0-2026-09-29">
