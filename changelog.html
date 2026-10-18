@@ -312,6 +312,8 @@
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Fix JSON Schema references for dynamically defined types with empty names,
+including recursive types that previously raised <code class="docutils literal notranslate"><span class="pre">RecursionError</span></code>.</p></li>
 <li><p>Fix generic <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> subclasses dropping the base type argument, so
 <code class="docutils literal notranslate"><span class="pre">class</span> <span class="pre">Sub(Base[int])</span></code> now validates inherited fields as <code class="docutils literal notranslate"><span class="pre">int</span></code>. Postponed
 PEP 695 annotations on those subclasses resolve instead of raising
