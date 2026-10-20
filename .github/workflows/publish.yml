@@ -1,0 +1,246 @@
+name: Publish documentation
+run-name: Publish source run ${{ inputs.source-run-id }} attempt ${{ inputs.source-run-attempt }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-run-id:
+        description: Successful msgspec/msgspec documentation workflow run ID.
+        required: true
+        type: string
+      source-run-attempt:
+        description: Latest successful attempt of that workflow run.
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  metadata:
+    name: Validate source identity and routing
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      target: ${{ steps.source.outputs.target }}
+      branch: ${{ steps.source.outputs.branch }}
+      source_sha: ${{ steps.source.outputs.source_sha }}
+    steps:
+    - name: Require the trusted publisher main branch
+      run: test "$GITHUB_REPOSITORY" = msgspec/docs-deploy && test "$GITHUB_REF" = refs/heads/main
+
+    - name: Check out trusted publisher code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        repository: msgspec/docs-deploy
+        ref: main
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.12'
+
+    - name: Mint a source reader token
+      id: reader
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+      with:
+        app-id: ${{ vars.DOCS_APP_ID }}
+        private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+        owner: msgspec
+        repositories: msgspec
+        permission-actions: read
+        permission-contents: read
+        permission-pull-requests: read
+
+    - name: Resolve the source run and artifact
+      id: source
+      env:
+        SOURCE_TOKEN: ${{ steps.reader.outputs.token }}
+        SOURCE_RUN_ID: ${{ inputs.source-run-id }}
+        SOURCE_RUN_ATTEMPT: ${{ inputs.source-run-attempt }}
+      run: python scripts/publish.py metadata
+
+  preview:
+    name: Publish pull request preview
+    needs: metadata
+    if: needs.metadata.outputs.target == 'preview'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    environment:
+      name: docs-preview
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+    concurrency:
+      group: docs-preview-${{ needs.metadata.outputs.branch }}
+      cancel-in-progress: true
+    steps:
+    - name: Check out trusted publisher code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        repository: msgspec/docs-deploy
+        ref: main
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.12'
+
+    - name: Mint a source reader token
+      id: reader
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+      with:
+        app-id: ${{ vars.DOCS_APP_ID }}
+        private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+        owner: msgspec
+        repositories: msgspec
+        permission-actions: read
+        permission-contents: read
+        permission-pull-requests: read
+
+    - name: Download and validate static documentation
+      env:
+        SOURCE_TOKEN: ${{ steps.reader.outputs.token }}
+        SOURCE_RUN_ID: ${{ inputs.source-run-id }}
+        SOURCE_RUN_ATTEMPT: ${{ inputs.source-run-attempt }}
+        EXPECTED_TARGET: ${{ needs.metadata.outputs.target }}
+        EXPECTED_BRANCH: ${{ needs.metadata.outputs.branch }}
+        EXPECTED_SHA: ${{ needs.metadata.outputs.source_sha }}
+      run: python scripts/publish.py prepare
+
+    - name: Revalidate the current pull request and latest source attempt
+      env:
+        SOURCE_TOKEN: ${{ steps.reader.outputs.token }}
+        SOURCE_RUN_ID: ${{ inputs.source-run-id }}
+        SOURCE_RUN_ATTEMPT: ${{ inputs.source-run-attempt }}
+      run: python scripts/publish.py revalidate
+
+    - name: Publish static preview
+      id: deploy
+      uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0
+      with:
+        apiToken: ${{ secrets.CF_PAGES_TOKEN }}
+        accountId: ${{ secrets.CF_ACCOUNT_ID }}
+        command: >-
+          pages deploy ${{ runner.temp }}/docs-data/site
+          --project-name=msgspec
+          --branch=${{ needs.metadata.outputs.branch }}
+          --commit-hash=${{ needs.metadata.outputs.source_sha }}
+        wranglerVersion: 4.98.0
+
+    - name: Record successful deployment
+      env:
+        PUBLISHED: 'true'
+        DEPLOYMENT_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+      run: python scripts/publish.py result
+
+    - name: Upload deployment result
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: docs-deployment
+        path: ${{ runner.temp }}/docs-data/result.json
+        if-no-files-found: error
+        retention-days: 7
+        overwrite: true
+
+  production:
+    name: Publish production and update snapshot
+    needs: metadata
+    if: needs.metadata.outputs.target == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    environment:
+      name: docs-live
+      url: https://msgspec.dev
+    concurrency:
+      group: docs-production
+      cancel-in-progress: false
+    steps:
+    - name: Check out trusted publisher code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        repository: msgspec/docs-deploy
+        ref: main
+        persist-credentials: false
+
+    - name: Check out the production snapshot as data
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        repository: msgspec/docs-deploy
+        ref: cf-pages
+        path: snapshot
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.12'
+
+    - name: Mint a source reader token
+      id: reader
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+      with:
+        app-id: ${{ vars.DOCS_APP_ID }}
+        private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+        owner: msgspec
+        repositories: msgspec
+        permission-actions: read
+        permission-contents: read
+        permission-pull-requests: read
+
+    - name: Download and validate static documentation
+      env:
+        SOURCE_TOKEN: ${{ steps.reader.outputs.token }}
+        SOURCE_RUN_ID: ${{ inputs.source-run-id }}
+        SOURCE_RUN_ATTEMPT: ${{ inputs.source-run-attempt }}
+        EXPECTED_TARGET: ${{ needs.metadata.outputs.target }}
+        EXPECTED_BRANCH: ${{ needs.metadata.outputs.branch }}
+        EXPECTED_SHA: ${{ needs.metadata.outputs.source_sha }}
+      run: python scripts/publish.py prepare
+
+    - name: Revalidate the source head, latest attempt, and snapshot
+      id: current
+      env:
+        SOURCE_TOKEN: ${{ steps.reader.outputs.token }}
+        SOURCE_RUN_ID: ${{ inputs.source-run-id }}
+        SOURCE_RUN_ATTEMPT: ${{ inputs.source-run-attempt }}
+      run: python scripts/publish.py revalidate
+
+    - name: Publish static production site
+      id: deploy
+      if: steps.current.outputs.publish == 'true'
+      uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0
+      with:
+        apiToken: ${{ secrets.CF_PAGES_TOKEN }}
+        accountId: ${{ secrets.CF_ACCOUNT_ID }}
+        command: >-
+          pages deploy ${{ runner.temp }}/docs-data/site
+          --project-name=msgspec
+          --branch=cf-pages
+          --commit-hash=${{ needs.metadata.outputs.source_sha }}
+        wranglerVersion: 4.98.0
+
+    - name: Save the deployed production snapshot
+      if: steps.current.outputs.publish == 'true'
+      env:
+        SNAPSHOT_TOKEN: ${{ github.token }}
+      run: python scripts/publish.py snapshot
+
+    - name: Record successful production result
+      env:
+        PUBLISHED: ${{ steps.current.outputs.publish }}
+      run: python scripts/publish.py result
+
+    - name: Upload deployment result
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: docs-deployment
+        path: ${{ runner.temp }}/docs-data/result.json
+        if-no-files-found: error
+        retention-days: 7
+        overwrite: true
