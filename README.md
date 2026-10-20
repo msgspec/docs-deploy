@@ -1,12 +1,12 @@
 # msgspec documentation publisher
 
-This repository holds the Cloudflare authority for documentation built by `msgspec/msgspec`. The source repository builds and checks documentation without Cloudflare credentials, then requests publication by identifying one successful source workflow run and its latest attempt. The publisher independently resolves the source, pull request, artifact, and destination through the GitHub API.
+This repository holds the Cloudflare authority for documentation built by `msgspec/msgspec`. The source repository builds and checks documentation without deployment credentials. A Rust Cloudflare Worker runs the publisher GitHub App, requests publication by identifying one successful source workflow run and its latest attempt, and reports the required `Docs preview` check. The publisher independently resolves the source, pull request, artifact, and destination through the GitHub API.
 
 ## Setup
 
 Create this repository as public `msgspec/docs-deploy`, with `main` as its default branch. Protect `main` and limit permission to change its code to trusted maintainers. Seed a separate `cf-pages` branch with the existing production snapshot. Treat that branch as static data; it must not contain GitHub workflow files. Keep the publisher workflow and Python helpers only on `main`.
 
-Configure a GitHub App installed only on `msgspec/msgspec` and `msgspec/docs-deploy`. Its maximum repository permissions are Actions write, Contents read, Pull requests read, and the required Metadata read permission. Do not grant Contents write, Workflows write, Secrets, Administration, or other permissions. The source may share this App's private key to dispatch the publisher. The publisher narrows each minted token to the source repository and Actions read, Contents read, and Pull requests read. This token cannot write publisher code or source code. Only the production job's own `GITHUB_TOKEN` can write the publisher snapshot.
+Configure a GitHub App installed only on `msgspec/msgspec` and `msgspec/docs-deploy`. Its maximum repository permissions are Actions write, Checks write, Contents read, Pull requests read, and the required Metadata read permission. Do not grant Contents write, Workflows write, Secrets, Administration, or other permissions. Keep the App's private key only in the Worker and this trusted publisher; never store it in source CI. The Worker dispatches publication and reports its check after validating the result. The publisher narrows each minted token to the source repository and Actions read, Contents read, and Pull requests read. This token cannot write publisher code or source code. Only the production job's own `GITHUB_TOKEN` can write the publisher snapshot.
 
 Set repository variable `DOCS_APP_ID` and repository secret `DOCS_APP_PRIVATE_KEY`. Create environments `docs-preview` and `docs-live`, and restrict both environments to deployments from `main`. In each environment, set secrets `CF_ACCOUNT_ID` and `CF_PAGES_TOKEN`. Scope the Cloudflare token to the intended account and Pages publishing capability. Confirm that the existing Pages project is `msgspec`, its production branch is `cf-pages`, and its production domain is `https://msgspec.dev`.
 
@@ -29,7 +29,7 @@ For a `pull_request` run, the publisher requires exactly one open pull request t
 
 For a `push` run, the publisher requires `main` in the source repository. The destination branch is always `cf-pages`. Immediately before upload, it checks the latest attempt and current source head again. An outdated source `main` head or a byte-identical production snapshot produces a successful result with `published: false`. Preview runs cancel superseded publication jobs for the same pull request. A single production concurrency group covers deployment and snapshot publication together, with cancellation disabled.
 
-Every successful publication job uploads artifact `docs-deployment` containing only `result.json`, retained for seven days. The source bridge must bind the result to its expected source run, attempt, SHA, publisher run, and preview alias. A result has this schema:
+Every successful publication job uploads artifact `docs-deployment` containing only `result.json`, retained for seven days. The Worker must bind the result to its expected source run, attempt, SHA, publisher run, target, publication flag, and exact URL before reporting success. A result has this schema:
 
 ```json
 {
