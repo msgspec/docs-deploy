@@ -96,7 +96,7 @@ class CleanupWorkflowPolicyTests(unittest.TestCase):
             "repository: msgspec/docs-deploy\n        ref: main", self.workflow
         )
         self.assertIn("persist-credentials: false", self.workflow)
-        self.assertIn("environment: docs-live", self.workflow)
+        self.assertIn("environment:\n      name: docs-live", self.workflow)
         self.assertIn("group: docs-cleanup\n  cancel-in-progress: false", self.workflow)
 
     def test_cleanup_token_is_read_only_source_scoped_and_cf_is_environment_scoped(
@@ -119,6 +119,39 @@ class CleanupWorkflowPolicyTests(unittest.TestCase):
         self.assertNotIn("cleanup.py", publication)
         self.assertNotIn("cleanup.yml", publication)
         self.assertNotIn("docs-deployment", self.workflow)
+
+
+class EnvironmentPolicyTests(unittest.TestCase):
+    def test_all_environment_jobs_keep_named_access_without_deployment_history(self):
+        expected = {
+            "publish.yml": {"preview": "docs-preview", "production": "docs-live"},
+            "cleanup.yml": {"cleanup": "docs-live"},
+        }
+        for filename, environments in expected.items():
+            workflow = (ROOT / ".github/workflows" / filename).read_text()
+            jobs = dict(
+                re.findall(
+                    r"(?ms)^  ([a-z]+):\n(.*?)(?=^  [a-z]+:|\Z)",
+                    workflow.split("\njobs:\n", 1)[1],
+                )
+            )
+            actual = {}
+            for job, content in jobs.items():
+                match = re.search(
+                    r"(?m)^    environment:\n((?:      [^\n]*\n)+)", content
+                )
+                if match:
+                    actual[job] = dict(
+                        re.findall(r"(?m)^      ([a-z]+): (.+)$", match[1])
+                    )
+            with self.subTest(workflow=filename):
+                self.assertEqual(
+                    actual,
+                    {
+                        job: {"name": name, "deployment": "false"}
+                        for job, name in environments.items()
+                    },
+                )
 
 
 if __name__ == "__main__":

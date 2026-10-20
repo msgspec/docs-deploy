@@ -18,7 +18,9 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-    environment: docs-live
+    environment:
+      name: docs-live
+      deployment: false
     steps:
     - name: Require the trusted publisher main branch
       run: test "$GITHUB_REPOSITORY" = msgspec/docs-deploy && test "$GITHUB_REF" = refs/heads/main
