@@ -72,7 +72,7 @@ jobs:
       contents: read
     environment:
       name: docs-preview
-      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+      deployment: false
     concurrency:
       group: docs-preview-${{ needs.metadata.outputs.branch }}
       cancel-in-progress: true
@@ -156,7 +156,7 @@ jobs:
       contents: write
     environment:
       name: docs-live
-      url: https://msgspec.dev
+      deployment: false
     concurrency:
       group: docs-production
       cancel-in-progress: false
