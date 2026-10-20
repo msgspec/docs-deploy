@@ -51,20 +51,30 @@ The publisher downloads the ZIP by the exact artifact ID returned for the verifi
 
 Artifacts extract only into a fresh `$RUNNER_TEMP/docs-data/site` directory, outside the trusted publisher checkout. Validation rejects traversal, absolute and drive paths, backslashes, duplicate and conflicting paths, symbolic links, special files, encrypted entries, Git metadata, root `.github` entries, root `_worker.js` files or directories, and root `functions` entries. A root `index.html` is required. Resource limits are 512 MiB for the ZIP, 1 GiB for extracted files, and 100,000 entries.
 
-The workflow never checks out or executes source code, artifact scripts, or artifact Wrangler configuration. Pinned Wrangler runs from the trusted publisher checkout with a fixed project and validated branch and commit arguments. Repository code must not add a Wrangler configuration that changes this boundary. Cloudflare credentials are supplied only to the deployment action.
+The workflow never checks out or executes source code, artifact scripts, or artifact Wrangler configuration. Pinned Wrangler runs from the trusted publisher checkout with a fixed project and validated branch and commit arguments. Repository code must not add a Wrangler configuration that changes this boundary. Cloudflare credentials are supplied only to the deployment action and the trusted retention helper described below.
 
 Production checks out `cf-pages` only as snapshot data. Snapshot creation uses Git object and tree plumbing with content filters disabled and no commit hooks. This preserves exact file bytes, including files that an artifact `.gitignore` would otherwise hide. Snapshot commits retain GitHub Actions bot attribution. Their push uses only the publisher job's `GITHUB_TOKEN`, never an App token or a source write token. A normal push rejects unexpected concurrent snapshot changes.
 
+## Deployment retention
+
+`.github/workflows/cleanup.yml` runs every ten minutes and accepts a `workflow_dispatch` on publisher `main` with no inputs. The Worker can dispatch the same workflow after publication completes or a pull request closes. These events only wake the sweep; the publisher resolves current Cloudflare deployments and source pull request state independently. Cleanup runs in its own concurrency group and uses the protected `docs-live` environment's `CF_ACCOUNT_ID` and `CF_PAGES_TOKEN`. Keep that environment restricted to publisher `main`, and grant the account-scoped Cloudflare token Pages read and write access, including deployment deletion. Its source App token has only Contents read and Pull requests read for `msgspec/msgspec`.
+
+The sweep retains the canonical production deployment currently identified by Cloudflare and the deployment currently serving `https://pr-N.msgspec.pages.dev` for each open source pull request targeting `main`. It deletes older production and preview deployments, previews of closed, merged, missing, or retargeted pull requests, and legacy previews from other branches. In-progress deployments remain until a later sweep observes a terminal state. The `cf-pages` snapshot remains operational data for production deduplication; cleanup does not change Git history or the snapshot branch.
+
+Before deleting anything, the helper snapshots every deployment page with `per_page=25`, validates all deployment identities, and reads every page of open source pull requests. Authentication failures, incomplete or inconsistent pagination, malformed responses, and ambiguous aliases stop the sweep. Before each deletion, it refreshes the candidate's stage and aliases and rechecks canonical production. Before deleting an aliased preview, it refreshes the complete authoritative source pull request list to protect reopened pull requests. API credentials stay on the fixed GitHub and Cloudflare API hosts; authenticated requests never follow redirects. The project is fixed to `msgspec`, and the account comes only from the trusted environment secret.
+
+Cleanup failures appear in the separate cleanup workflow and do not change a successful publication result or its `Docs preview` check. Review the failed run's error, repair credentials or unexpected provider metadata as needed, and rerun the failed job or dispatch `cleanup.yml` on `main` with no inputs. Successful earlier deletions remain effective, and retries resolve current state again. Concurrent publication, PR changes, and provider rate limits can defer work to a later sweep; the two providers do not offer an atomic cross-service state check. Deleted historical deployments cannot be used for rollback. Rebuild and publish a current successful source workflow when a removed preview is needed again.
+
 ## Development
 
-The helpers and tests use Python 3.12 and its standard library. The CI workflow runs API, routing, archive, result, Git snapshot, and workflow policy fixtures without credentials or network access.
+The helpers and tests use Python 3.12 and its standard library. The CI workflow runs API, routing, archive, result, Git snapshot, retention, and workflow policy fixtures without credentials or network access.
 
 ```text
 python -m unittest discover -s tests -v
-actionlint -no-color .github/workflows/publish.yml .github/workflows/ci.yml
+actionlint -no-color .github/workflows/publish.yml .github/workflows/ci.yml .github/workflows/cleanup.yml
 zizmor --no-progress --format plain .github/workflows
 ```
 
-Tests cover malformed identities, stale attempts and heads, wrong repositories and workflows, fork association fallbacks and ambiguity, missing and expired artifacts, link-only reruns reusing the same run's build, artifacts predating the original run, digest mismatch, unsafe ZIP entries, production skip behavior, exact preview aliases, and snapshot filters and attribution. Action SHAs and Wrangler are pinned; update them deliberately and run all checks when changing the trust boundary.
+Tests cover malformed identities, stale attempts and heads, wrong repositories and workflows, fork association fallbacks and ambiguity, missing and expired artifacts, link-only reruns reusing the same run's build, artifacts predating the original run, digest mismatch, unsafe ZIP entries, production skip behavior, exact preview aliases, and snapshot filters and attribution. Retention fixtures cover production rollback and PR reopening races, in-progress and retried deployments, historical and orphaned previews, pagination failures, authentication and deletion errors, null aliases, and credential-safe redirects. Action SHAs and Wrangler are pinned; update them deliberately and run all checks when changing the trust boundary.
 
 Local tests do not exercise live GitHub App installation, environment restrictions, cross-repository dispatch, artifact service redirects, Cloudflare credentials, or actual Pages upload. Validate those integrations after provisioning with a current successful source build and retain its publisher result as evidence.

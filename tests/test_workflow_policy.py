@@ -73,5 +73,53 @@ class WorkflowPolicyTests(unittest.TestCase):
             self.assertNotIn("postCommands:", job)
 
 
+class CleanupWorkflowPolicyTests(unittest.TestCase):
+    def setUp(self):
+        self.workflow = (ROOT / ".github/workflows/cleanup.yml").read_text()
+
+    def test_only_scheduled_and_no_input_manual_wakeups_are_supported(self):
+        self.assertIn("cron: '7,17,27,37,47,57 * * * *'", self.workflow)
+        self.assertIn("  workflow_dispatch:\n", self.workflow)
+        self.assertNotIn("inputs:", self.workflow)
+        self.assertNotIn("workflow_run:", self.workflow)
+        self.assertNotIn("pull_request", self.workflow)
+        self.assertNotIn("repository_dispatch", self.workflow)
+
+    def test_cleanup_requires_expected_publisher_main_and_protected_environment(self):
+        self.assertIn(
+            "if: github.repository == 'msgspec/docs-deploy' && github.ref == 'refs/heads/main'",
+            self.workflow,
+        )
+        self.assertIn('test "$GITHUB_REPOSITORY" = msgspec/docs-deploy', self.workflow)
+        self.assertIn('test "$GITHUB_REF" = refs/heads/main', self.workflow)
+        self.assertIn(
+            "repository: msgspec/docs-deploy\n        ref: main", self.workflow
+        )
+        self.assertIn("persist-credentials: false", self.workflow)
+        self.assertIn("environment: docs-live", self.workflow)
+        self.assertIn("group: docs-cleanup\n  cancel-in-progress: false", self.workflow)
+
+    def test_cleanup_token_is_read_only_source_scoped_and_cf_is_environment_scoped(
+        self,
+    ):
+        self.assertIn("permissions: {}", self.workflow)
+        self.assertIn("contents: read", self.workflow)
+        self.assertNotIn(": write", self.workflow)
+        self.assertIn("owner: msgspec\n        repositories: msgspec", self.workflow)
+        self.assertIn("permission-contents: read", self.workflow)
+        self.assertIn("permission-pull-requests: read", self.workflow)
+        self.assertIn("CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}", self.workflow)
+        self.assertIn("CF_PAGES_TOKEN: ${{ secrets.CF_PAGES_TOKEN }}", self.workflow)
+        self.assertIn("run: python scripts/cleanup.py", self.workflow)
+        self.assertNotIn("download-artifact", self.workflow)
+        self.assertNotIn("source-run-id", self.workflow)
+
+    def test_cleanup_cannot_change_the_publication_result(self):
+        publication = (ROOT / ".github/workflows/publish.yml").read_text()
+        self.assertNotIn("cleanup.py", publication)
+        self.assertNotIn("cleanup.yml", publication)
+        self.assertNotIn("docs-deployment", self.workflow)
+
+
 if __name__ == "__main__":
     unittest.main()

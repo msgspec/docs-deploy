@@ -1,0 +1,54 @@
+name: Clean up documentation deployments
+
+on:
+  schedule:
+  - cron: '7,17,27,37,47,57 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: docs-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.repository == 'msgspec/docs-deploy' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    environment: docs-live
+    steps:
+    - name: Require the trusted publisher main branch
+      run: test "$GITHUB_REPOSITORY" = msgspec/docs-deploy && test "$GITHUB_REF" = refs/heads/main
+
+    - name: Check out trusted publisher code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        repository: msgspec/docs-deploy
+        ref: main
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.12'
+
+    - name: Mint a source pull request reader token
+      id: reader
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+      with:
+        app-id: ${{ vars.DOCS_APP_ID }}
+        private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+        owner: msgspec
+        repositories: msgspec
+        permission-contents: read
+        permission-pull-requests: read
+
+    - name: Retain current production and open pull request aliases
+      env:
+        SOURCE_TOKEN: ${{ steps.reader.outputs.token }}
+        CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        CF_PAGES_TOKEN: ${{ secrets.CF_PAGES_TOKEN }}
+      run: python scripts/cleanup.py
