@@ -364,6 +364,8 @@ could add support by wrapping the standard library’s <a class="reference exter
 <span class="ne">ValidationError</span>: Expected `int`, got `str` - at `$.x`
 </pre></div>
 </div>
+<p>When converting into a <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="api.html#msgspec.convert" title="msgspec.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a> also accepts mapping objects providing
+a <code class="docutils literal notranslate"><span class="pre">keys()</span></code> method and <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> for retrieving each key’s value.</p>
 <p>Since all protocols are different, <a class="reference internal" href="api.html#msgspec.to_builtins" title="msgspec.to_builtins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_builtins</span></code></a> and <a class="reference internal" href="api.html#msgspec.convert" title="msgspec.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a> have a few
 configuration options:</p>
 <ul class="simple">
