@@ -346,6 +346,10 @@ now we also check <code class="docutils literal notranslate"><span class="pre">_
 and <code class="docutils literal notranslate"><span class="pre">_field_defaults</span></code> to exist and to be a <code class="docutils literal notranslate"><span class="pre">dict</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1259">PR #1259</a>)</p></li>
 <li><p>Fix a possible crash when <code class="docutils literal notranslate"><span class="pre">Meta(pattern='...')</span></code>
 was used in loops (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1256">PR #1256</a>)</p></li>
+<li><p>Fix a possible crash with <code class="docutils literal notranslate"><span class="pre">defstruct</span></code> with empty <code class="docutils literal notranslate"><span class="pre">module=</span></code>
+and complex typing forms (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1271">PR #1271</a>)</p></li>
+<li><p>Fix a possible crash when iterating over <code class="docutils literal notranslate"><span class="pre">&#64;dataclass</span></code> instances
+with complex <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> objects (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1271">PR #1271</a>)</p></li>
 <li><p>Fix a possible crash when too big ints are passed
 into <code class="docutils literal notranslate"><span class="pre">Meta</span></code>’s constructor (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1260">PR #1260</a>)</p></li>
 <li><p>Fix <code class="docutils literal notranslate"><span class="pre">msgpack</span></code> encoding of dicts with <code class="docutils literal notranslate"><span class="pre">frozendict</span></code> keys on Python 3.15, which
