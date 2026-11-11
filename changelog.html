@@ -312,6 +312,9 @@
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Fix decoding ISO 8601 durations with very large day counts, which could
+overflow and return an incorrect <code class="docutils literal notranslate"><span class="pre">timedelta</span></code> or raise <code class="docutils literal notranslate"><span class="pre">OverflowError</span></code> instead
+of <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>.</p></li>
 <li><p>Fix JSON Schema generation for distinct types sharing the same module and
 qualified name, such as dynamically generated structs.</p></li>
 <li><p>Include string Literal and Enum dictionary key constraints in generated JSON
