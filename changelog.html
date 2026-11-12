@@ -312,6 +312,8 @@
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> fields with <code class="docutils literal notranslate"><span class="pre">Annotated</span></code> outside <code class="docutils literal notranslate"><span class="pre">Required</span></code> or <code class="docutils literal notranslate"><span class="pre">NotRequired</span></code>
+raising <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>, preserving constraints and schema metadata.</p></li>
 <li><p>Fix decoding ISO 8601 durations with very large day counts, which could
 overflow and return an incorrect <code class="docutils literal notranslate"><span class="pre">timedelta</span></code> or raise <code class="docutils literal notranslate"><span class="pre">OverflowError</span></code> instead
 of <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>.</p></li>
