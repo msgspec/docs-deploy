@@ -312,6 +312,10 @@
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">Encoder.encode_into</span></code> shrinking the buffer’s capacity when passed an
+<code class="docutils literal notranslate"><span class="pre">offset</span></code> inside the buffer. An <code class="docutils literal notranslate"><span class="pre">offset</span></code> past the end of the buffer now fills
+the gap with zeros instead of leaving it uninitialized, and a failed encode no
+longer leaves the buffer’s old contents past the written output.</p></li>
 <li><p>Fix <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> fields with <code class="docutils literal notranslate"><span class="pre">Annotated</span></code> outside <code class="docutils literal notranslate"><span class="pre">Required</span></code> or <code class="docutils literal notranslate"><span class="pre">NotRequired</span></code>
 raising <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>, preserving constraints and schema metadata.</p></li>
 <li><p>Fix decoding ISO 8601 durations with very large day counts, which could
