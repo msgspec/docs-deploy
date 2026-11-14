@@ -321,6 +321,9 @@ of <code class="docutils literal notranslate"><span class="pre">ValidationError<
 qualified name, such as dynamically generated structs.</p></li>
 <li><p>Include string Literal and Enum dictionary key constraints in generated JSON
 Schema <code class="docutils literal notranslate"><span class="pre">propertyNames</span></code>.</p></li>
+<li><p>Fix encoding of <code class="docutils literal notranslate"><span class="pre">datetime</span></code> and <code class="docutils literal notranslate"><span class="pre">time</span></code> values whose UTC offset is within a
+minute of +/-24 hours. These were written as <code class="docutils literal notranslate"><span class="pre">Z</span></code>, moving the instant by a
+full day; they now round to the closest valid offset (<code class="docutils literal notranslate"><span class="pre">+23:59</span></code>/<code class="docutils literal notranslate"><span class="pre">-23:59</span></code>).</p></li>
 <li><p>Fix JSON Schema references for dynamically defined types with empty names,
 including recursive types that previously raised <code class="docutils literal notranslate"><span class="pre">RecursionError</span></code>.</p></li>
 <li><p>Fix generic <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> subclasses dropping the base type argument, so
