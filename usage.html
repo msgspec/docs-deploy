@@ -374,6 +374,15 @@ create a <code class="docutils literal notranslate"><span class="pre">Decoder</s
 <span class="go">{'hello': 'world'}</span>
 </pre></div>
 </div>
+<p>JSON input must be encoded as UTF-8 (see <a class="reference external" href="https://datatracker.ietf.org/doc/html/rfc8259#section-8.1">RFC 8259</a>). UTF-16 or
+UTF-32 input and a leading byte order mark are rejected with a
+<code class="docutils literal notranslate"><span class="pre">DecodeError</span></code>. If a JSON object contains the same key more than once, the
+last value is used, but earlier values are still validated against the
+expected type.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">msgspec</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="sa">b</span><span class="s1">'{"x": 1, "x": 2}'</span><span class="p">)</span>
+<span class="go">{'x': 2}</span>
+</pre></div>
+</div>
 </section>
 <section id="typed-decoding">
 <span id="id1"></span><h2>Typed Decoding<a class="headerlink" href="#typed-decoding" title="Link to this heading">¶</a></h2>
