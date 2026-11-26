@@ -312,6 +312,10 @@
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> when decoding, converting, inspecting or generating JSON
+Schema for <code class="docutils literal notranslate"><span class="pre">attrs</span></code> classes with fields that have no annotation, such as
+<code class="docutils literal notranslate"><span class="pre">attrs.make_class(&quot;Point&quot;,</span> <span class="pre">[&quot;x&quot;])</span></code> or <code class="docutils literal notranslate"><span class="pre">attr.ib()</span></code>. Such fields are now treated
+as <code class="docutils literal notranslate"><span class="pre">Any</span></code>, or as the type passed to <code class="docutils literal notranslate"><span class="pre">attr.ib(type=...)</span></code>.</p></li>
 <li><p>Fix a race when multiple threads first use the same type for decoding or
 conversion.</p></li>
 <li><p>Raise <code class="docutils literal notranslate"><span class="pre">DecodeError</span></code> instead of <code class="docutils literal notranslate"><span class="pre">UnicodeDecodeError</span></code> for invalid UTF-8 strings
