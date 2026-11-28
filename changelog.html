@@ -311,90 +311,124 @@
 <h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">¶</a></h1>
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
+</section>
+<section id="version-0-23-0-unreleased">
+<h2>Version 0.23.0 (unreleased)<a class="headerlink" href="#version-0-23-0-unreleased" title="Link to this heading">¶</a></h2>
+<section id="new-features">
+<h3>New features<a class="headerlink" href="#new-features" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Support converting non-dict mappings to <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> types with <code class="docutils literal notranslate"><span class="pre">convert</span></code>
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1240">PR #1240</a>).</p></li>
+<li><p>Include JSON Schema defaults for dataclass and <code class="docutils literal notranslate"><span class="pre">attrs</span></code> fields with builtin
+<code class="docutils literal notranslate"><span class="pre">list</span></code>, <code class="docutils literal notranslate"><span class="pre">dict</span></code>, <code class="docutils literal notranslate"><span class="pre">set</span></code> or <code class="docutils literal notranslate"><span class="pre">bytearray</span></code> default factories (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1222">PR #1222</a>).</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Fix a reference leak when building a decoder for a <code class="docutils literal notranslate"><span class="pre">tuple</span></code> subclass whose
-<code class="docutils literal notranslate"><span class="pre">_fields</span></code> attribute is not a <code class="docutils literal notranslate"><span class="pre">tuple</span></code>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">_fields</span></code> attribute is not an exact <code class="docutils literal notranslate"><span class="pre">tuple</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1377">PR #1377</a>).</p></li>
+<li><p>Return one-dimensional unsigned-byte views for MessagePack binary values
+decoded as <code class="docutils literal notranslate"><span class="pre">memoryview</span></code> and extension data passed to <code class="docutils literal notranslate"><span class="pre">ext_hook</span></code>, including
+non-byte and multidimensional input buffers. Preserve shared storage and its
+lifetime (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1373">PR #1373</a>).</p></li>
+<li><p>Fix MessagePack list encoding races on free-threaded Python builds
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1252">PR #1252</a>).</p></li>
+<li><p>Fix races when types are first used concurrently for decoding or conversion,
+and avoid reusing incomplete recursive <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> state after schema
+construction fails (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1359">PR #1359</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1258">PR #1258</a>).</p></li>
+<li><p>Treat <code class="docutils literal notranslate"><span class="pre">attrs</span></code> fields without annotations as <code class="docutils literal notranslate"><span class="pre">Any</span></code>, or as their
+<code class="docutils literal notranslate"><span class="pre">attr.ib(type=...)</span></code> type, during decoding, conversion, inspection and JSON
+Schema generation (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1367">PR #1367</a>).</p></li>
+<li><p>Propagate unexpected field-access and dictionary-lookup errors during
+dataclass encoding, object conversion and sorted output
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1271">PR #1271</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1323">PR #1323</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1369">PR #1369</a>).</p></li>
+<li><p>Fix module namespace resolution and missing-annotation errors when defining
+or inspecting <code class="docutils literal notranslate"><span class="pre">Struct</span></code> types (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1271">PR #1271</a>).</p></li>
+<li><p>Apply inherited generic <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> arguments to subclass fields and resolve
+PEP 695 type parameters correctly with postponed annotations, without
+substituting same-named module-level <code class="docutils literal notranslate"><span class="pre">TypeVar</span></code> objects
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1230">PR #1230</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1130">PR #1130</a>).</p></li>
+<li><p>Preserve <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> requiredness, constraints and schema metadata when
+<code class="docutils literal notranslate"><span class="pre">Annotated</span></code> appears outside <code class="docutils literal notranslate"><span class="pre">Required</span></code> or <code class="docutils literal notranslate"><span class="pre">NotRequired</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1321">PR #1321</a>).</p></li>
+<li><p>Raise <code class="docutils literal notranslate"><span class="pre">DecodeError</span></code> instead of <code class="docutils literal notranslate"><span class="pre">UnicodeDecodeError</span></code> for invalid UTF-8 input
+decoded as JSON, MessagePack or TOML (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1331">PR #1331</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1270">PR #1270</a>).</p></li>
+<li><p>Raise <code class="docutils literal notranslate"><span class="pre">DecodeError</span></code> for invalid YAML scalar values that previously raised
+<code class="docutils literal notranslate"><span class="pre">ValueError</span></code>, <code class="docutils literal notranslate"><span class="pre">LookupError</span></code> or <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> during parsing (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1337">PR #1337</a>).</p></li>
+<li><p>Raise <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> instead of <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> from <code class="docutils literal notranslate"><span class="pre">toml.encode</span></code> when the
+converted top-level value is not a table (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1370">PR #1370</a>).</p></li>
+<li><p>Avoid shrinking <code class="docutils literal notranslate"><span class="pre">Encoder.encode_into</span></code> buffer capacity at an existing offset,
+zero-fill gaps before an offset, and remove stale trailing contents after
+failed encoding
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1310">PR #1310</a>).</p></li>
+<li><p>Quote <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> JSON dictionary keys, including when
+<code class="docutils literal notranslate"><span class="pre">decimal_format=&quot;number&quot;</span></code>, and reject non-finite <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> values in number
+mode (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1216">PR #1216</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1263">PR #1263</a>).</p></li>
+<li><p>Honor <code class="docutils literal notranslate"><span class="pre">str_keys=True</span></code> for dictionary keys even when their types appear in
+<code class="docutils literal notranslate"><span class="pre">builtin_types</span></code>, including date and time keys in TOML
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1217">PR #1217</a>).</p></li>
+<li><p>Apply <code class="docutils literal notranslate"><span class="pre">dec_hook</span></code> when converting custom dictionary-key types (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1238">PR #1238</a>).</p></li>
+<li><p>Raise path-aware <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> for unhashable set items or converted
+dictionary keys, and reject objects without a <code class="docutils literal notranslate"><span class="pre">keys</span></code> attribute when converting
+to a dictionary
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1296">PR #1296</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1309">PR #1309</a>).</p></li>
+<li><p>Reject embedded NUL bytes in datetime and time strings, and report epoch
+timestamps or rounding beyond year 9999 as <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1314">PR #1314</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1212">PR #1212</a>).</p></li>
+<li><p>Reject overflowing day counts when decoding ISO 8601 durations
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1320">PR #1320</a>).</p></li>
+<li><p>Correct encoding of UTC offsets within a minute of +/-24 hours, which were
+previously written as <code class="docutils literal notranslate"><span class="pre">Z</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1298">PR #1298</a>).</p></li>
+<li><p>Use a fast path for subnormal JSON float parsing and initialize the portable
+leading-zero-count fallback (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1237">PR #1237</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1264">PR #1264</a>).</p></li>
+<li><p>Preserve outer descriptive <code class="docutils literal notranslate"><span class="pre">Meta</span></code> values when <code class="docutils literal notranslate"><span class="pre">Annotated</span></code> layers are separated
+by <code class="docutils literal notranslate"><span class="pre">NewType</span></code> or type aliases in inspection and JSON Schema. Validation
+constraints are unchanged (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1371">PR #1371</a>).</p></li>
 <li><p>Fix JSON Schema descriptions taken from multi-line docstrings keeping the
 indentation of every line after the first on Python 3.12 and older, when the
 summary starts on the line with the opening quotes. Tabs in such docstrings
-are now expanded to spaces on those versions, as they already are on 3.13+.</p></li>
-<li><p>Raise <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> instead of <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> from <code class="docutils literal notranslate"><span class="pre">msgspec.toml.encode</span></code> when
-the object does not encode to a table.</p></li>
-<li><p>Fix <code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">examples</span></code>, <code class="docutils literal notranslate"><span class="pre">extra_json_schema</span></code> and <code class="docutils literal notranslate"><span class="pre">extra</span></code> from
-an inner <code class="docutils literal notranslate"><span class="pre">Meta</span></code> taking precedence over an outer one in <code class="docutils literal notranslate"><span class="pre">msgspec.inspect</span></code> and
-JSON Schema when the inner one is behind a <code class="docutils literal notranslate"><span class="pre">NewType</span></code> or <code class="docutils literal notranslate"><span class="pre">type</span></code> alias. The
-<code class="docutils literal notranslate"><span class="pre">Meta</span></code> closest to the use site now wins, as it does for nested <code class="docutils literal notranslate"><span class="pre">Annotated</span></code>.</p></li>
-<li><p>Fix <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> when decoding, converting, inspecting or generating JSON
-Schema for <code class="docutils literal notranslate"><span class="pre">attrs</span></code> classes with fields that have no annotation, such as
-<code class="docutils literal notranslate"><span class="pre">attrs.make_class(&quot;Point&quot;,</span> <span class="pre">[&quot;x&quot;])</span></code> or <code class="docutils literal notranslate"><span class="pre">attr.ib()</span></code>. Such fields are now treated
-as <code class="docutils literal notranslate"><span class="pre">Any</span></code>, or as the type passed to <code class="docutils literal notranslate"><span class="pre">attr.ib(type=...)</span></code>.</p></li>
-<li><p>Fix a race when multiple threads first use the same type for decoding or
-conversion.</p></li>
-<li><p>Raise <code class="docutils literal notranslate"><span class="pre">DecodeError</span></code> instead of <code class="docutils literal notranslate"><span class="pre">UnicodeDecodeError</span></code> for invalid UTF-8 strings
-decoded from JSON or MessagePack (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/714">Issue #714</a>).</p></li>
-<li><p>Fix <code class="docutils literal notranslate"><span class="pre">msgspec.inspect.type_info</span></code> returning <code class="docutils literal notranslate"><span class="pre">CustomType</span></code> for enums whose
-metaclass is a subclass of <code class="docutils literal notranslate"><span class="pre">enum.EnumMeta</span></code>, which also broke
-<code class="docutils literal notranslate"><span class="pre">msgspec.json.schema</span></code> for them.</p></li>
-<li><p>Fix invalid JSON schemas containing empty <code class="docutils literal notranslate"><span class="pre">prefixItems</span></code> arrays for zero-field
-array-like structs and named tuples.</p></li>
-<li><p>Fix <code class="docutils literal notranslate"><span class="pre">Encoder.encode_into</span></code> shrinking the buffer’s capacity when passed an
-<code class="docutils literal notranslate"><span class="pre">offset</span></code> inside the buffer. An <code class="docutils literal notranslate"><span class="pre">offset</span></code> past the end of the buffer now fills
-the gap with zeros instead of leaving it uninitialized, and a failed encode no
-longer leaves the buffer’s old contents past the written output.</p></li>
-<li><p>Fix <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> fields with <code class="docutils literal notranslate"><span class="pre">Annotated</span></code> outside <code class="docutils literal notranslate"><span class="pre">Required</span></code> or <code class="docutils literal notranslate"><span class="pre">NotRequired</span></code>
-raising <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>, preserving constraints and schema metadata.</p></li>
-<li><p>Fix decoding ISO 8601 durations with very large day counts, which could
-overflow and return an incorrect <code class="docutils literal notranslate"><span class="pre">timedelta</span></code> or raise <code class="docutils literal notranslate"><span class="pre">OverflowError</span></code> instead
-of <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>.</p></li>
-<li><p>Fix JSON Schema generation for distinct types sharing the same module and
-qualified name, such as dynamically generated structs.</p></li>
-<li><p>Include string Literal and Enum dictionary key constraints in generated JSON
-Schema <code class="docutils literal notranslate"><span class="pre">propertyNames</span></code>.</p></li>
-<li><p>Fix encoding of <code class="docutils literal notranslate"><span class="pre">datetime</span></code> and <code class="docutils literal notranslate"><span class="pre">time</span></code> values whose UTC offset is within a
-minute of +/-24 hours. These were written as <code class="docutils literal notranslate"><span class="pre">Z</span></code>, moving the instant by a
-full day; they now round to the closest valid offset (<code class="docutils literal notranslate"><span class="pre">+23:59</span></code>/<code class="docutils literal notranslate"><span class="pre">-23:59</span></code>).</p></li>
-<li><p>Fix JSON Schema references for dynamically defined types with empty names,
-including recursive types that previously raised <code class="docutils literal notranslate"><span class="pre">RecursionError</span></code>.</p></li>
-<li><p>Fix generic <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> subclasses dropping the base type argument, so
-<code class="docutils literal notranslate"><span class="pre">class</span> <span class="pre">Sub(Base[int])</span></code> now validates inherited fields as <code class="docutils literal notranslate"><span class="pre">int</span></code>. Postponed
-PEP 695 annotations on those subclasses resolve instead of raising
-<code class="docutils literal notranslate"><span class="pre">NameError</span></code> (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1191">Issue #1191</a>).</p></li>
-<li><p>Fix invalid <code class="docutils literal notranslate"><span class="pre">json</span></code> that was produced when converting non-finite <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>
-objects with <code class="docutils literal notranslate"><span class="pre">decimal_format=&quot;number&quot;</span></code> (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1262">Issue #1262</a>)</p></li>
-<li><p>Fix a crash <code class="docutils literal notranslate"><span class="pre">repr()</span></code> call for structs with <code class="docutils literal notranslate"><span class="pre">repr_omit_defaults=True</span></code>
-and partial inner state, now proper <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code>
-is raised instead (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1257">PR #1257</a>)</p></li>
-<li><p>Fix the error state left set when looking up <code class="docutils literal notranslate"><span class="pre">ClassVar</span></code> on a module-level
-<code class="docutils literal notranslate"><span class="pre">typing</span></code> name that is not the real <code class="docutils literal notranslate"><span class="pre">typing</span></code> module. On CPython builds with
-assertions enabled this terminated the interpreter. The lookup error now
-propagates as intended (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1221">Issue #1221</a>)</p></li>
-<li><p>Support converting non-dict mappings (such as <code class="docutils literal notranslate"><span class="pre">asyncpg.Record</span></code>) to <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code>
-types with <code class="docutils literal notranslate"><span class="pre">convert</span></code>, matching the existing support for structs and
-dataclasses (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1239">Issue #1239</a>)</p></li>
-<li><p>Fix a <code class="docutils literal notranslate"><span class="pre">NameError</span></code> when resolving a generic <code class="docutils literal notranslate"><span class="pre">TypedDict</span></code> defined with PEP 695
-type parameter syntax (<code class="docutils literal notranslate"><span class="pre">class</span> <span class="pre">Foo[T](TypedDict)</span></code>) under
-<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">__future__</span> <span class="pre">import</span> <span class="pre">annotations</span></code> on Python 3.12/3.13. Also prevent a
-same-named module-level <code class="docutils literal notranslate"><span class="pre">TypeVar</span></code> from shadowing the PEP 695 type parameter,
-which could silently affect decoding on Python 3.12+ (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1130">PR #1130</a>).</p></li>
-<li><p>Fix a typing false negative that allowed assigning attributes
-to <code class="docutils literal notranslate"><span class="pre">READONLY</span></code> and C level getters (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1244">PR #1244</a>)</p></li>
-<li><p>Support <code class="docutils literal notranslate"><span class="pre">TypeForm[]</span></code> type instead of <code class="docutils literal notranslate"><span class="pre">Type[]</span></code> in decoders,
-requires <code class="docutils literal notranslate"><span class="pre">mypy&gt;=2.1</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1245">PR #1245</a>)</p></li>
-<li><p>Fix how we detect <code class="docutils literal notranslate"><span class="pre">NamedTuple</span></code> subclasses,
-now we also check <code class="docutils literal notranslate"><span class="pre">_fields</span></code> to exist and to be a <code class="docutils literal notranslate"><span class="pre">tuple</span></code>
-and <code class="docutils literal notranslate"><span class="pre">_field_defaults</span></code> to exist and to be a <code class="docutils literal notranslate"><span class="pre">dict</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1259">PR #1259</a>)</p></li>
-<li><p>Fix a possible crash when <code class="docutils literal notranslate"><span class="pre">Meta(pattern='...')</span></code>
-was used in loops (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1256">PR #1256</a>)</p></li>
-<li><p>Fix a possible crash with <code class="docutils literal notranslate"><span class="pre">defstruct</span></code> with empty <code class="docutils literal notranslate"><span class="pre">module=</span></code>
-and complex typing forms (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1271">PR #1271</a>)</p></li>
-<li><p>Fix a possible crash when iterating over <code class="docutils literal notranslate"><span class="pre">&#64;dataclass</span></code> instances
-with complex <code class="docutils literal notranslate"><span class="pre">__dict__</span></code> objects (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1271">PR #1271</a>)</p></li>
-<li><p>Fix a possible crash when too big ints are passed
-into <code class="docutils literal notranslate"><span class="pre">Meta</span></code>’s constructor (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1260">PR #1260</a>)</p></li>
-<li><p>Fix <code class="docutils literal notranslate"><span class="pre">msgpack</span></code> encoding of dicts with <code class="docutils literal notranslate"><span class="pre">frozendict</span></code> keys on Python 3.15, which
-raised <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> although the decoder produces such keys for
-<code class="docutils literal notranslate"><span class="pre">dict[frozendict[K,</span> <span class="pre">V],</span> <span class="pre">T]</span></code> (<a class="extlink-issue reference external" href="https://github.com/msgspec/msgspec/issues/1280">Issue #1280</a>)</p></li>
+are now expanded to spaces on those versions, as they already are on 3.13+
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1375">PR #1375</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1379">PR #1379</a>).</p></li>
+<li><p>Support enums with custom metaclasses in inspection and JSON Schema
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1346">PR #1346</a>).</p></li>
+<li><p>Require valid <code class="docutils literal notranslate"><span class="pre">_fields</span></code> and <code class="docutils literal notranslate"><span class="pre">_field_defaults</span></code> metadata when identifying named
+tuples, and use the same checks during inspection (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1259">PR #1259</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1313">PR #1313</a>).</p></li>
+<li><p>Generate distinct JSON Schema component names for types that share a module
+and qualified name, and support empty component names, including recursive
+types (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1225">PR #1225</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1274">PR #1274</a>).</p></li>
+<li><p>Omit empty <code class="docutils literal notranslate"><span class="pre">prefixItems</span></code> arrays from JSON schemas for fieldless array-like
+structs and named tuples (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1360">PR #1360</a>).</p></li>
+<li><p>Preserve string <code class="docutils literal notranslate"><span class="pre">Literal</span></code>, enum and union dictionary-key constraints in
+JSON Schema <code class="docutils literal notranslate"><span class="pre">propertyNames</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1273">PR #1273</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1355">PR #1355</a>).</p></li>
+<li><p>Include declared zero and composite <code class="docutils literal notranslate"><span class="pre">Flag</span></code> and <code class="docutils literal notranslate"><span class="pre">IntFlag</span></code> members in generated
+JSON schemas (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1229">PR #1229</a>).</p></li>
+<li><p>Copy dictionaries returned by <code class="docutils literal notranslate"><span class="pre">schema_hook</span></code> before adding field defaults,
+avoiding mutation of the returned top-level dictionary (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1339">PR #1339</a>).</p></li>
+<li><p>Correct JSON and MessagePack decoder stubs to use <code class="docutils literal notranslate"><span class="pre">TypeForm</span></code> for supported
+type expressions. With mypy 2.1, enable
+<code class="docutils literal notranslate"><span class="pre">--enable-incomplete-feature=TypeForm</span></code>; mypy 2.2 enables it by default
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1245">PR #1245</a>).</p></li>
+<li><p>Mark read-only attributes as <code class="docutils literal notranslate"><span class="pre">Final</span></code> in type stubs (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1244">PR #1244</a>).</p></li>
+<li><p>Fix object lifetime handling for <code class="docutils literal notranslate"><span class="pre">Meta(pattern=...)</span></code> constraints and report
+missing fields in <code class="docutils literal notranslate"><span class="pre">Struct.__rich_repr__</span></code> before comparing defaults
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1256">PR #1256</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1257">PR #1257</a>).</p></li>
+<li><p>Propagate errors from <code class="docutils literal notranslate"><span class="pre">ClassVar</span></code> lookup instead of leaving an exception set
+during <code class="docutils literal notranslate"><span class="pre">Struct</span></code> creation (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1223">PR #1223</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1269">PR #1269</a>).</p></li>
+<li><p>Fix error handling for oversized <code class="docutils literal notranslate"><span class="pre">Meta</span></code> numeric arguments, very large integer
+<code class="docutils literal notranslate"><span class="pre">multiple_of</span></code> constraints and failed truth-value conversions
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1260">PR #1260</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1265">PR #1265</a>).</p></li>
+<li><p>Propagate allocation failure when decoding ASCII JSON strings (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1241">PR #1241</a>).</p></li>
+<li><p>Correct fixed-size type metadata for <code class="docutils literal notranslate"><span class="pre">Raw</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1268">PR #1268</a>).</p></li>
+<li><p>Fix reference leaks in JSON <code class="docutils literal notranslate"><span class="pre">encode_lines</span></code> iterators, replaced regex
+constraints, UUID conversion error paths, Python 3.14 union resolution and
+MessagePack sorted-encoding error paths
+(<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1284">PR #1284</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1261">PR #1261</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1327">PR #1327</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1248">PR #1248</a>).</p></li>
+<li><p>Release temporary import references during module initialization, including
+references to <code class="docutils literal notranslate"><span class="pre">uuid</span></code> and <code class="docutils literal notranslate"><span class="pre">decimal</span></code> (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1081">PR #1081</a>, <a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1267">PR #1267</a>).</p></li>
+<li><p>Fix MessagePack encoding of dictionary keys typed as <code class="docutils literal notranslate"><span class="pre">frozendict</span></code> on Python
+3.15 (<a class="extlink-pr reference external" href="https://github.com/msgspec/msgspec/pull/1283">PR #1283</a>).</p></li>
 </ul>
+</section>
 </section>
 <section id="version-0-22-0-2026-09-29">
 <h2>Version 0.22.0 (2026-09-29)<a class="headerlink" href="#version-0-22-0-2026-09-29" title="Link to this heading">¶</a></h2>
@@ -1178,6 +1212,11 @@ faster decoding.</p></li>
             <ul>
 <li><a class="reference internal" href="#">Changelog</a><ul>
 <li><a class="reference internal" href="#unreleased">Unreleased</a></li>
+<li><a class="reference internal" href="#version-0-23-0-unreleased">Version 0.23.0 (unreleased)</a><ul>
+<li><a class="reference internal" href="#new-features">New features</a></li>
+<li><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#version-0-22-0-2026-09-29">Version 0.22.0 (2026-09-29)</a></li>
 <li><a class="reference internal" href="#version-0-21-1-2026-04-13">Version 0.21.1 (2026-04-13)</a></li>
 <li><a class="reference internal" href="#version-0-21-0-2026-04-08">Version 0.21.0 (2026-04-08)</a></li>
