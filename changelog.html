@@ -312,6 +312,8 @@
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Fix a reference leak when building a decoder for a <code class="docutils literal notranslate"><span class="pre">tuple</span></code> subclass whose
+<code class="docutils literal notranslate"><span class="pre">_fields</span></code> attribute is not a <code class="docutils literal notranslate"><span class="pre">tuple</span></code>.</p></li>
 <li><p>Fix JSON Schema descriptions taken from multi-line docstrings keeping the
 indentation of every line after the first on Python 3.12 and older, when the
 summary starts on the line with the opening quotes. Tabs in such docstrings
